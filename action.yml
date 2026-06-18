@@ -52,7 +52,7 @@ runs:
         VERSION="${{ inputs.version }}"
         if [ "$VERSION" = "latest" ]; then
           echo "Fetching latest RL version..."
-          VERSION=$(curl -s https://api.github.com/repos/MohamedGonem/rl-lang/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
+          VERSION=$(curl -s https://api.github.com/repos/rl-lang/rl-lang/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
           if [ -z "$VERSION" ]; then
             echo "Failed to get latest version"
             exit 1
@@ -69,7 +69,7 @@ runs:
         fi
         
         # Construct download URL
-        DOWNLOAD_URL="https://github.com/MohamedGonem/rl-lang/releases/download/${VERSION}/${BINARY_NAME}"
+        DOWNLOAD_URL="https://github.com/rl-lang/rl-lang/releases/download/${VERSION}/${BINARY_NAME}"
         
         # Download binary
         echo "Downloading RL from ${DOWNLOAD_URL}"
