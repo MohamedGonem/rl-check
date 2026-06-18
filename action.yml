@@ -4,9 +4,12 @@ author: 'MohamedGonem'
 
 inputs:
   version:
-    description: 'RL version to use (e.g., v0.1.3). Defaults to latest'
+    description: 'RL version to use (e.g., v0.1.3). Defaults to v0.1.3'
     required: false
-    default: 'latest'
+    default: 'v0.1.3'
+  file:
+    description: 'File to check (e.g., main.rl)'
+    required: true
   args:
     description: 'Additional arguments to pass to rl check'
     required: false
@@ -42,7 +45,8 @@ runs:
         esac
         
         # Determine which version to download
-        if [ "${{ inputs.version }}" = "latest" ]; then
+        VERSION="${{ inputs.version }}"
+        if [ "$VERSION" = "latest" ]; then
           echo "Fetching latest RL version..."
           VERSION=$(curl -s https://api.github.com/repos/MohamedGonem/rl-lang/releases/latest | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
           if [ -z "$VERSION" ]; then
@@ -51,7 +55,6 @@ runs:
           fi
           echo "Latest version: $VERSION"
         else
-          VERSION="${{ inputs.version }}"
           echo "Using specified version: $VERSION"
         fi
         
@@ -82,5 +85,5 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        echo "Running: rl check ${{ inputs.args }}"
-        /usr/local/bin/rl check ${{ inputs.args }}
+        echo "Running: rl check ${{ inputs.file }} ${{ inputs.args }}"
+        /usr/local/bin/rl check "${{ inputs.file }}" ${{ inputs.args }}
