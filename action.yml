@@ -3,6 +3,7 @@ description: 'Run rl check on your repository using the RL language'
 author: 'MohamedGonem'
 
 branding:
+  icon: 'check-circle'
   color: 'blue'
 
 inputs:
