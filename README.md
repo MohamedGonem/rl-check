@@ -97,4 +97,4 @@ jobs:
 
 ## License
 
-MIT
+[MIT](LICENSE)
