@@ -8,9 +8,9 @@ branding:
 
 inputs:
   version:
-    description: 'RL version to use (e.g., v0.1.3). Defaults to v0.1.3'
+    description: 'RL version to use (e.g., v0.1.4). Defaults to v0.1.4'
     required: false
-    default: 'v0.1.3'
+    default: 'v0.1.4'
   file:
     description: 'File to check (e.g., main.rl)'
     required: true
