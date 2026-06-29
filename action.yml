@@ -8,7 +8,7 @@ branding:
 
 inputs:
   version:
-    description: 'RL version to use (e.g., v0.1.4). Defaults to v0.1.4'
+    description: 'RL version to use (e.g., v0.1.4, latest, nightly). Defaults to v0.1.4'
     required: false
     default: 'v0.1.4'
   file:
@@ -58,6 +58,9 @@ runs:
             exit 1
           fi
           echo "Latest version: $VERSION"
+        elif [ "$VERSION" = "nightly" ]; then
+          echo "Using nightly release"
+          VERSION="nightly"
         else
           echo "Using specified version: $VERSION"
         fi
