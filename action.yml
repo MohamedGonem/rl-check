@@ -12,8 +12,13 @@ inputs:
     required: false
     default: 'v0.1.4'
   file:
-    description: 'File to check (e.g., main.rl)'
-    required: true
+    description: 'File to check (e.g., main.rl). Ignored if folder is set.'
+    required: false
+    default: ''
+  folder:
+    description: 'Folder to check (e.g., nano/, cd/). Runs rl check on every .rl file directly inside it.'
+    required: false
+    default: ''
   args:
     description: 'Additional arguments to pass to rl check'
     required: false
@@ -29,26 +34,22 @@ runs:
     - name: Install RL binary
       shell: bash
       run: |
-        # Detect OS and architecture
         OS=$(uname -s | tr '[:upper:]' '[:lower:]')
         ARCH=$(uname -m)
-        
-        # Map architecture
+
         case $ARCH in
           x86_64) ARCH="x86_64" ;;
           aarch64|arm64) ARCH="aarch64" ;;
           *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
         esac
-        
-        # Map OS to target format
+
         case $OS in
           linux) TARGET_OS="unknown-linux-gnu" ;;
           darwin) TARGET_OS="apple-darwin" ;;
           windows|mingw*|msys*) TARGET_OS="pc-windows-msvc" ;;
           *) echo "Unsupported OS: $OS"; exit 1 ;;
         esac
-        
-        # Determine which version to download
+
         VERSION="${{ inputs.version }}"
         if [ "$VERSION" = "latest" ]; then
           echo "Fetching latest RL version..."
@@ -64,27 +65,22 @@ runs:
         else
           echo "Using specified version: $VERSION"
         fi
-        
-        # Set binary name
+
         BINARY_NAME="rl"
         if [[ "$TARGET_OS" == "pc-windows-msvc" ]]; then
           BINARY_NAME="rl.exe"
         fi
-        
-        # Construct download URL
+
         DOWNLOAD_URL="https://github.com/rl-lang/rl-lang/releases/download/${VERSION}/${BINARY_NAME}"
-        
-        # Download binary
+
         echo "Downloading RL from ${DOWNLOAD_URL}"
         mkdir -p /usr/local/bin
         curl -L -o /usr/local/bin/rl "${DOWNLOAD_URL}"
-        
-        # Make executable (not needed on Windows)
+
         if [[ "$TARGET_OS" != "pc-windows-msvc" ]]; then
           chmod +x /usr/local/bin/rl
         fi
-        
-        # Verify installation
+
         echo "✅ RL installed successfully!"
         /usr/local/bin/rl --version 2>/dev/null || echo "⚠️  Version check failed but binary is installed"
 
@@ -92,5 +88,43 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        echo "Running: rl check ${{ inputs.file }} ${{ inputs.args }}"
-        /usr/local/bin/rl check "${{ inputs.file }}" ${{ inputs.args }}
+        FOLDER="${{ inputs.folder }}"
+        FILE="${{ inputs.file }}"
+
+        if [ -n "$FOLDER" ]; then
+          if [ ! -d "$FOLDER" ]; then
+            echo "❌ Folder not found: $FOLDER"
+            exit 1
+          fi
+
+          echo "Checking all .rl files in $FOLDER"
+          cd "$FOLDER"
+
+          FAIL=0
+          COUNT=0
+          for f in *.rl; do
+            [ -e "$f" ] || continue
+            COUNT=$((COUNT+1))
+            echo "::group::rl check $f"
+            if /usr/local/bin/rl check "$f" ${{ inputs.args }}; then
+              echo "✅ $f"
+            else
+              echo "❌ $f"
+              FAIL=1
+            fi
+            echo "::endgroup::"
+          done
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "❌ No .rl files found in $FOLDER"
+            exit 1
+          fi
+
+          exit $FAIL
+        elif [ -n "$FILE" ]; then
+          echo "Running: rl check ${{ inputs.file }} ${{ inputs.args }}"
+          /usr/local/bin/rl check "${{ inputs.file }}" ${{ inputs.args }}
+        else
+          echo "❌ Must set either 'file' or 'folder'"
+          exit 1
+        fi
